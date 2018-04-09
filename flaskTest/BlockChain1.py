@@ -10,14 +10,17 @@ from uuid import uuid4; #签名
 import requests;#请求
 from flask import  Flask, jsonify, request;#网络的框架
 
-class BlockChain:#实现一个区块链
-    def __init__(self): #初始化
+#实现一个区块链
+class BlockChain:
+    # 初始化
+    def __init__(self):
         self.chain = []; #区块的列表
         self.current_transaction=[];#交易的列表
         self.nodes = set()#节点,与别的电脑连接
         self.new_block(previous_hash=1,proof=100)#创建第一个区块
 
-    def register_node(self,address):#在集合中添加其他的节点
+    # 在集合中添加其他的节点
+    def register_node(self,address):
         parsed_url = urlparse(address)#地址注册
         if parsed_url.netloc:#可以连接网络的情况
             self.nodes.add(parsed_url.netloc)
@@ -27,7 +30,6 @@ class BlockChain:#实现一个区块链
 
         else:
             raise ValueError('url无效');
-
 
     # 新的区块
     def new_block(self,proof,previous_hash=None): #新建一个区块，需要计算才能追加
@@ -45,9 +47,10 @@ class BlockChain:#实现一个区块链
         return block;
 
     # 新的交易
-    def new_transaction(self,sender, #付款方
-                        recipient, #收款方
-                        amount):  #交易金额
+    #sender 付款方
+    #recipient 付款方
+    #amount 交易金额
+    def new_transaction(self,sender, recipient,amount):
 
         #添加一个信息的交易
         self.current_transaction.append({
@@ -60,6 +63,7 @@ class BlockChain:#实现一个区块链
 
 
     @property
+    #获取最后一个区块
     def last_block(self): #代表取最后一块
         return self.chain[-1];
 
@@ -75,8 +79,8 @@ class BlockChain:#实现一个区块链
 
         return proof;
 
-
-    @staticmethod #类的静态函数
+    # 类的静态函数
+    @staticmethod
 
     # 验证工作量证明
     def valid_proof(last_proof,proof,last_hash):
@@ -156,12 +160,12 @@ blockchain = BlockChain() #构造一个区块链
 
 @app.route('/')#系统工作正常
 
-#1
+#1系统的正常工作，默认的首页
 def index_page():
     return '欢迎来到dada电子货币系统，韭菜你好flask网络工作正常'
 
-#2
-@app.route('/chain',methods=['GET']) #显示所有的区块
+#2显示所有的区块
+@app.route('/chain',methods=['GET'])
 def chain():
     response = {
         "chain":blockchain.chain, #区块信息
@@ -170,9 +174,7 @@ def chain():
 
     return jsonify(response), 200; #返回网络信息，200网络相应码
 
-
-#3
-#新的交易
+#3添加新的交易
 @app.route('/transaction/new',methods=['POST'])
 def new_transaction():
 
@@ -188,8 +190,8 @@ def new_transaction():
 
     return jsonify(response), 201;
 
-#4
-@app.route('/mine',methods=['GET'])#挖矿
+#4挖矿，添加新的区块
+@app.route('/mine',methods=['GET'])
 def mine():
     lastblock=blockchain.last_block#取的区块链表最后一个区块
 
@@ -211,29 +213,8 @@ def mine():
 
     return jsonify(response), 200; #返回信息
 
-
-#5 网络同步
-@app.route('/nodes/resolve',methods=['GET'])#共识算法用最长的替换当下
-def nodes_resolve():
-    replaced = blockchain.resolve_conflicts();
-
-    if replaced:
-        response = {
-            "message":"区块链信息已经被同步",
-            "new_chain":blockchain.chain
-        }
-    else:
-        response = {
-            "message": "当前区块链是权威最长无需替换",
-            "chain": blockchain.chain
-        }
-
-    return jsonify(response), 200;
-
-
+#5. 节点注册
 @app.route('/nodes/register',methods=['POST'])
-
-#6. 节点注册
 def nodes_register():
     values = request.get_json()#抓取网络信息,链接其他节点
     nodes = values.get('nodes'); #读取节点
@@ -252,6 +233,23 @@ def nodes_register():
 
     return jsonify(response), 200 #返回信息
 
+#6. 网络同步
+@app.route('/nodes/resolve',methods=['GET'])#共识算法用最长的替换当下
+def nodes_resolve():
+    replaced = blockchain.resolve_conflicts();
+
+    if replaced:
+        response = {
+            "message":"区块链信息已经被同步",
+            "new_chain":blockchain.chain
+        }
+    else:
+        response = {
+            "message": "当前区块链是权威最长无需替换",
+            "chain": blockchain.chain
+        }
+
+    return jsonify(response), 200;
 
 
 if __name__ == '__main__':

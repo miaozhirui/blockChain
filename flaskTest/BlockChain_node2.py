@@ -17,7 +17,8 @@ class BlockChain:#实现一个区块链
         self.nodes = set()#节点,与别的电脑连接
         self.new_block(previous_hash=1,proof=100)#创建第一个区块
 
-    def register_node(self,address):#在集合中添加其他的节点
+    # 在集合中添加其他的节点
+    def register_node(self,address):
         parsed_url = urlparse(address)#地址注册
         if parsed_url.netloc:#可以连接网络的情况
             self.nodes.add(parsed_url.netloc)
@@ -27,7 +28,6 @@ class BlockChain:#实现一个区块链
 
         else:
             raise ValueError('url无效');
-
 
     # 新的区块
     def new_block(self,proof,previous_hash=None): #新建一个区块，需要计算才能追加
